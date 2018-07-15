@@ -92,7 +92,8 @@ class MSL(object):
 
                 # Subtiltes
                 # 'dfxp-ls-sdh',
-                'simplesdh',
+                #'simplesdh',
+				'webvtt-lssdh-ios8',
                 # 'nflx-cmisc',
 
                 # Unkown

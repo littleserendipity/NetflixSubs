@@ -896,8 +896,9 @@ class KodiHelper(object):
             List could be build
         """
         is_helper = inputstreamhelper.Helper('mpd', drm='widevine')
-        if not is_helper.check_inputstream():
-            return False
+        # disable the following 2 lines to prevent video playback, makes it easier to download subs.
+        #if not is_helper.check_inputstream():
+        #    return False
 
         # track play event
         self.track_event('playVideo')
