@@ -29,11 +29,11 @@ Further instructions and discussion can be found at http://www.nihongonobaka.com
 
 Log in using your Netflix username and password, and then select a show or movie to play. 
 
-The first time you try to play something, you will be prompted to enable InputStream helper and install WideVine. Just follow the prompts.
-
 When you attempt to play a video, the subtitle files will automatically be written to disk, along with a file named Subtitle_Urls.txt which includes a list of all available subtitle streams for the most recently played video, and the language codes for each.
 
 You can specify where you want to save the subtitle files within the plugin settings. You can also specify if you only want to download subtitles with a specific language code.
+
+The plugin may not download subtitles properly the first time you run it after installation. If you encounter this problem please try exiting Kodi and try again.
 
 ## Subtitle Availability (Why isn't the language I want available?)
 
