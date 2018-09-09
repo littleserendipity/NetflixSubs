@@ -1,10 +1,10 @@
 # Kodi Media Center language file
 # Addon Name: Netflix
-# Addon id: plugin.video.netflixsubs
+# Addon id: plugin.video.netflix
 # Addon Provider: libdev + jojo + asciidisco
 msgid ""
 msgstr ""
-"Project-Id-Version: plugin.video.netflixsubs\n"
+"Project-Id-Version: plugin.video.netflix\n"
 "Report-Msgid-Bugs-To: https://github.com/asciidisco/plugin.video.netflix\n"
 "POT-Creation-Date: 2017-07-24 16:15+0000\n"
 "PO-Revision-Date: 2017-07-24 16:15+0000\n"
@@ -17,11 +17,11 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 msgctxt "Addon Summary"
-msgid "Netflix Subs"
+msgid "Netflix"
 msgstr ""
 
 msgctxt "Addon Description"
-msgid "Netflix Subtitle Downloader"
+msgid "Netflix VOD Services Addon"
 msgstr ""
 
 msgctxt "Addon Disclaimer"
@@ -266,6 +266,90 @@ msgstr ""
 
 msgctxt "#30062"
 msgid "Enable/disable adult pin. Active:"
+msgstr ""
+
+msgctxt "#30063"
+msgid "new episodes added to library"
+msgstr ""
+
+msgctxt "#30064"
+msgid "Export new episodes"
+msgstr ""
+
+msgctxt "#30065"
+msgid "Auto-update"
+msgstr ""
+
+msgctxt "#30066"
+msgid "never"
+msgstr ""
+
+msgctxt "#30067"
+msgid "daily"
+msgstr ""
+
+msgctxt "#30068"
+msgid "every other day"
+msgstr ""
+
+msgctxt "#30069"
+msgid "every 5 days"
+msgstr ""
+
+msgctxt "#30070"
+msgid "weekly"
+msgstr ""
+
+msgctxt "#30071"
+msgid "Time of Day"
+msgstr ""
+
+msgctxt "#30072"
+msgid "Only start after 5 minutes of idle"
+msgstr ""
+
+msgctxt "#30073"
+msgid "Check every X minutes if update scheduled"
+msgstr ""
+
+msgctxt "#30074"
+msgid "View for exported"
+msgstr ""
+
+msgctxt "#30075"
+msgid "Ask to skip intro and recap"
+msgstr ""
+
+msgctxt "#30076"
+msgid "Skip intro"
+msgstr ""
+
+msgctxt "#30077"
+msgid "Skip recap"
+msgstr ""
+
+msgctxt "#30078"
+msgid "Playback"
+msgstr ""
+
+msgctxt "#30079"
+msgid "Skip automatically"
+msgstr ""
+
+msgctxt "#30080"
+msgid "Don't pause when skipping"
+msgstr ""
+
+msgctxt "#30081"
+msgid "Save audio/subtitle preferences for this show"
+msgstr ""
+
+msgctxt "#30082"
+msgid "Save audio / subtitle settings for TV shows"
+msgstr ""
+
+msgctxt "#30083"
+msgid "Save bookmarks for library items / mark as watched"
 msgstr ""
 
 msgctxt "#30120"

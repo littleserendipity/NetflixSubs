@@ -465,7 +465,7 @@ class MSL(object):
                 filename_lang = str(text_track.get('bcp47'))
                 file.write(filename_lang)     #write subtitle language and url to file
                 file.write(': ' + base_url + '\r\n')   #write subtitle language and url to file
-                if (filename_lang == self.nx_common.get_setting('subtitle_language').lower) or (self.nx_common.get_setting('subtitle_language') == ''):
+                if (filename_lang == self.nx_common.get_setting('subtitle_language').lower()) or (self.nx_common.get_setting('subtitle_language') == ''):
                     filename_title = xbmc.getInfoLabel('VideoPlayer.TVShowTitle')
                     movie=False
                     if filename_title=='':
