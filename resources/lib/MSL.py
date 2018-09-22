@@ -23,6 +23,7 @@ from StringIO import StringIO
 from datetime import datetime
 import requests
 import xml.etree.ElementTree as ET
+import unicodedata
 
 #check if we are on Android
 import subprocess
