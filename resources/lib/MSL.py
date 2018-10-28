@@ -23,6 +23,7 @@ from StringIO import StringIO
 from datetime import datetime
 import requests
 import xml.etree.ElementTree as ET
+import unicodedata
 
 #check if we are on Android
 import subprocess
@@ -519,6 +520,7 @@ class MSL(object):
         file_content = re.sub(r' position:.+%', '', file_content)
         file_content = re.sub(r'<.*?>', '', file_content)
         file_content = re.sub(r'{.*?}', '', file_content)
+        file_content = re.sub(r'&rlm;', unicodedata.lookup('RIGHT-TO-LEFT EMBEDDING'), file_content)
         filename_out = in_file.replace(".vtt",".srt")
         f = codecs.open(os.path.join(subtitle_path, filename_out), "w", encoding="utf-8")
         f.write(file_content)
