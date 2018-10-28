@@ -18,7 +18,7 @@ import codecs
 import os
 import xbmc
 import xbmcvfs
-import urllib			 	 
+import urllib
 from StringIO import StringIO
 from datetime import datetime
 import requests
@@ -68,7 +68,7 @@ class MSL(object):
           self.crypto.fromDict(None)
           self.__perform_key_handshake()
 
-    def load_manifest(self, viewable_id, dolby, hevc):
+    def load_manifest(self, viewable_id, dolby, hevc, hdr, dolbyvision):
         """
         Loads the manifets for the given viewable_id and
         returns a mpd-XML-Manifest
@@ -91,10 +91,10 @@ class MSL(object):
                 'heaac-2-dash',
 
                 # Subtiltes
-                # 'dfxp-ls-sdh',
+                #'dfxp-ls-sdh',
                 #'simplesdh',
-				'webvtt-lssdh-ios8',
-                # 'nflx-cmisc',
+                'webvtt-lssdh-ios8',
+                #'nflx-cmisc',
 
                 # Unkown
                 'BIF240',
@@ -124,9 +124,6 @@ class MSL(object):
             prk = 'dash-cenc-prk'
             cenc = 'dash-cenc'
             ctl = 'dash-cenc-tl'
-            hdr = 'hevc-hdr-main10-'
-            dv = 'hevc-dv-main10-'
-            dv5 = 'hevc-dv5-main10-'
             manifest_request_data['profiles'].append(main10 + 'L41-' + cenc)
             manifest_request_data['profiles'].append(main10 + 'L50-' + cenc)
             manifest_request_data['profiles'].append(main10 + 'L51-' + cenc)
@@ -154,30 +151,35 @@ class MSL(object):
             manifest_request_data['profiles'].append(main10 + 'L31-L40-' + ctl)
             manifest_request_data['profiles'].append(main10 + 'L40-L41-' + ctl)
             manifest_request_data['profiles'].append(main10 + 'L50-L51-' + ctl)
-            manifest_request_data['profiles'].append(dv + 'L30-' + cenc)
-            manifest_request_data['profiles'].append(dv + 'L31-' + cenc)
-            manifest_request_data['profiles'].append(dv + 'L40-' + cenc)
-            manifest_request_data['profiles'].append(dv + 'L41-' + cenc)
-            manifest_request_data['profiles'].append(dv + 'L50-' + cenc)
-            manifest_request_data['profiles'].append(dv + 'L51-' + cenc)
-            manifest_request_data['profiles'].append(dv5 + 'L30-' + prk)
-            manifest_request_data['profiles'].append(dv5 + 'L31-' + prk)
-            manifest_request_data['profiles'].append(dv5 + 'L40-' + prk)
-            manifest_request_data['profiles'].append(dv5 + 'L41-' + prk)
-            manifest_request_data['profiles'].append(dv5 + 'L50-' + prk)
-            manifest_request_data['profiles'].append(dv5 + 'L51-' + prk)
-            manifest_request_data['profiles'].append(hdr + 'L30-' + cenc)
-            manifest_request_data['profiles'].append(hdr + 'L31-' + cenc)
-            manifest_request_data['profiles'].append(hdr + 'L40-' + cenc)
-            manifest_request_data['profiles'].append(hdr + 'L41-' + cenc)
-            manifest_request_data['profiles'].append(hdr + 'L50-' + cenc)
-            manifest_request_data['profiles'].append(hdr + 'L51-' + cenc)
-            manifest_request_data['profiles'].append(hdr + 'L30-' + prk)
-            manifest_request_data['profiles'].append(hdr + 'L31-' + prk)
-            manifest_request_data['profiles'].append(hdr + 'L40-' + prk)
-            manifest_request_data['profiles'].append(hdr + 'L41-' + prk)
-            manifest_request_data['profiles'].append(hdr + 'L50-' + prk)
-            manifest_request_data['profiles'].append(hdr + 'L51-' + prk)
+            if hdr is True:
+                hdr = 'hevc-hdr-main10-'
+                manifest_request_data['profiles'].append(hdr + 'L30-' + cenc)
+                manifest_request_data['profiles'].append(hdr + 'L31-' + cenc)
+                manifest_request_data['profiles'].append(hdr + 'L40-' + cenc)
+                manifest_request_data['profiles'].append(hdr + 'L41-' + cenc)
+                manifest_request_data['profiles'].append(hdr + 'L50-' + cenc)
+                manifest_request_data['profiles'].append(hdr + 'L51-' + cenc)
+                manifest_request_data['profiles'].append(hdr + 'L30-' + prk)
+                manifest_request_data['profiles'].append(hdr + 'L31-' + prk)
+                manifest_request_data['profiles'].append(hdr + 'L40-' + prk)
+                manifest_request_data['profiles'].append(hdr + 'L41-' + prk)
+                manifest_request_data['profiles'].append(hdr + 'L50-' + prk)
+                manifest_request_data['profiles'].append(hdr + 'L51-' + prk)
+            if dolbyvision is True:
+                dv = 'hevc-dv-main10-'
+                dv5 = 'hevc-dv5-main10-'
+                manifest_request_data['profiles'].append(dv + 'L30-' + cenc)
+                manifest_request_data['profiles'].append(dv + 'L31-' + cenc)
+                manifest_request_data['profiles'].append(dv + 'L40-' + cenc)
+                manifest_request_data['profiles'].append(dv + 'L41-' + cenc)
+                manifest_request_data['profiles'].append(dv + 'L50-' + cenc)
+                manifest_request_data['profiles'].append(dv + 'L51-' + cenc)
+                manifest_request_data['profiles'].append(dv5 + 'L30-' + prk)
+                manifest_request_data['profiles'].append(dv5 + 'L31-' + prk)
+                manifest_request_data['profiles'].append(dv5 + 'L40-' + prk)
+                manifest_request_data['profiles'].append(dv5 + 'L41-' + prk)
+                manifest_request_data['profiles'].append(dv5 + 'L50-' + prk)
+                manifest_request_data['profiles'].append(dv5 + 'L51-' + prk)
 
         # Check if dolby sound is enabled and add to profles
         if dolby:
@@ -442,8 +444,8 @@ class MSL(object):
                     indexRangeExact='true')
 
         # Multiple Adaption Sets for subtiles
-		subtitle_path = self.nx_common.get_setting('subtitle_folder')
-		file = codecs.open(os.path.join(subtitle_path, 'Subtitle_urls.txt'), 'w', encoding='utf-8')
+        subtitle_path = unicode(self.nx_common.get_setting('subtitle_folder'), "utf-8")
+        file = codecs.open(os.path.join(subtitle_path, 'Subtitle_urls.txt'), 'w', encoding='utf-8')
         for text_track in manifest.get('textTracks'):
             is_downloadables = 'downloadables' not in text_track
             if is_downloadables or text_track.get('downloadables') is None:
@@ -478,19 +480,23 @@ class MSL(object):
                     else:
                         filename_out = filename_title + '.S' + filename_season.zfill(2) + 'E' + filename_episode.zfill(2) + '.' + filename_lang + '.vtt' 
                     filename_out = unicode(filename_out, "utf-8").translate(dict((ord(char), None) for char in '\/*?:"<>|'))
-                    if not os.path.isfile(os.path.join(subtitle_path, filename_out)):
+                    if not os.path.isfile(os.path.join(subtitle_path, filename_out)): #if file doesnt exist already
                         urllib.urlretrieve (base_url, os.path.join(subtitle_path, filename_out))    #download subtitle to a file
-                        # xbmc.log("Downloaded Subtitle " + filename_out,2)
-                    else:
+                    else: #if already exists
                         urllib.urlretrieve (base_url, os.path.join(subtitle_path, 'temp'))    #download subtitle to a file
-                        if (os.path.getsize(os.path.join(subtitle_path, 'temp')) > os.path.getsize(os.path.join(subtitle_path, filename_out))):
+                        if (os.path.getsize(os.path.join(subtitle_path, 'temp')) > os.path.getsize(os.path.join(subtitle_path, filename_out))): #if new one is bigger than the old one
                             os.remove(os.path.join(subtitle_path, filename_out))
                             os.rename(os.path.join(subtitle_path, 'temp'), os.path.join(subtitle_path, filename_out))
-                            # xbmc.log("Replaced Subtitle " + filename_out,2)
                         else:
                             os.remove(os.path.join(subtitle_path, 'temp'))
                     if self.nx_common.get_setting('convert_to_srt'):
                         self.__convert2SRT(filename_out)
+
+        if self.nx_common.get_setting('delete_vtt'): #delete vtt files
+            list_of_files = os.listdir(subtitle_path)
+            for item in list_of_files:
+                if item.endswith(".vtt"):
+                    os.remove(os.path.join(subtitle_path, item))
 
         xml = ET.tostring(root, encoding='utf-8', method='xml')
         xml = xml.replace('\n', '').replace('\r', '')
@@ -502,11 +508,10 @@ class MSL(object):
 
         return xml
     def __convert2SRT(self, in_file):
-        subtitle_path = self.nx_common.get_setting('subtitle_folder')
+        subtitle_path = unicode(self.nx_common.get_setting('subtitle_folder'), "utf-8")
         f = codecs.open(os.path.join(subtitle_path, in_file), 'r', encoding='utf-8')
         file_content = f.read()
         f.close()
-        #xbmc.log("Successfully read file",2)
         file_content = re.sub(r'([\d]+)\.([\d]+)', r'\1,\2', file_content)
         file_content = re.sub(r'WEBVTT\n\n', '', file_content)
         file_content = re.sub(r'NOTE.*\n', '', file_content)
@@ -518,7 +523,6 @@ class MSL(object):
         f = codecs.open(os.path.join(subtitle_path, filename_out), "w", encoding="utf-8")
         f.write(file_content)
         f.close()
-        #xbmc.log("Converted subtitle to " + filename_out,2)
 
 
     def __get_base_url(self, urls):

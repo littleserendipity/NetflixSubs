@@ -352,6 +352,14 @@ msgctxt "#30083"
 msgid "Save bookmarks for library items / mark as watched"
 msgstr ""
 
+msgctxt "#30084"
+msgid "Enable HDR profiles"
+msgstr ""
+
+msgctxt "#30085"
+msgid "Enable DolbyVision profiles"
+msgstr ""
+
 msgctxt "#30120"
 msgid "Subtitles"
 msgstr ""
@@ -365,5 +373,9 @@ msgid "Convert Subtitles to SRT"
 msgstr ""
 
 msgctxt "#30123"
+msgid "Delete VTT files after conversion"
+msgstr ""
+
+msgctxt "#30124"
 msgid "Only download subtitles with language code"
 msgstr ""
