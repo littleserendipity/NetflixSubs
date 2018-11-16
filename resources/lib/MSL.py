@@ -17,6 +17,7 @@ import uuid
 import codecs
 import os
 import xbmc
+import xbmcaddon
 import xbmcvfs
 import urllib
 from StringIO import StringIO
@@ -83,15 +84,17 @@ class MSL(object):
             'viewableIds': [viewable_id],
             'profiles': [
                 # Video
-                "playready-h264bpl30-dash",
-                "playready-h264mpl30-dash",
-                "playready-h264mpl31-dash",
-                "playready-h264mpl40-dash",
+                'playready-h264bpl30-dash',
+                'playready-h264mpl30-dash',
+                'playready-h264mpl31-dash',
+                'playready-h264mpl40-dash',
+                'vp9-profile0-L30-dash-cenc',
+                'vp9-profile0-L31-dash-cenc',
 
                 # Audio
                 'heaac-2-dash',
 
-                # Subtiltes
+                # Subtiltes (handled separately)
                 #'dfxp-ls-sdh',
                 #'simplesdh',
                 'webvtt-lssdh-ios8',
@@ -117,6 +120,16 @@ class MSL(object):
             'clientVersion': '4.0004.899.011',
             'uiVersion': 'akira'
         }
+        
+        # subtitles
+        #addon = xbmcaddon.Addon('inputstream.adaptive')
+        #if addon and addon.getAddonInfo('version') >= '2.3.8':
+        addon = xbmcaddon.Addon('plugin.video.netflixsubs')
+        if addon and addon.getAddonInfo('version') >= '0.12.7':
+            manifest_request_data['profiles'].append('webvtt-lssdh-ios8')
+        else:
+            manifest_request_data['profiles'].append('simplesdh')
+
 
         # add hevc profiles if setting is set
         if hevc is True:
@@ -124,7 +137,7 @@ class MSL(object):
             main10 = 'hevc-main10-'
             prk = 'dash-cenc-prk'
             cenc = 'dash-cenc'
-            ctl = 'dash-cenc-tl'
+            ctl = 'dash-cenc-ctl'
             manifest_request_data['profiles'].append(main10 + 'L41-' + cenc)
             manifest_request_data['profiles'].append(main10 + 'L50-' + cenc)
             manifest_request_data['profiles'].append(main10 + 'L51-' + cenc)
@@ -360,6 +373,10 @@ class MSL(object):
                 codec = 'h264'
                 if 'hevc' in downloadable['contentProfile']:
                     codec = 'hevc'
+                elif downloadable['contentProfile'] == 'vp9-profile0-L30-dash-cenc':
+                  codec = 'vp9.0.30'
+                elif downloadable['contentProfile'] == 'vp9-profile0-L31-dash-cenc':
+                  codec = 'vp9.0.31'
 
                 hdcp_versions = '0.0'
                 for hdcp in downloadable['hdcpVersions']:
@@ -451,47 +468,53 @@ class MSL(object):
             is_downloadables = 'downloadables' not in text_track
             if is_downloadables or text_track.get('downloadables') is None:
                 continue
+            # Only one subtitle representation per adaptationset
+            downloadable = text_track['downloadables'][0]
             subtiles_adaption_set = ET.SubElement(
                 parent=period,
                 tag='AdaptationSet',
                 lang=text_track.get('bcp47'),
-                codecs='stpp',
+                codecs='wvtt' if downloadable.get('contentProfile') == 'webvtt-lssdh-ios8' else 'stpp',
                 contentType='text',
-                mimeType='application/ttml+xml')
-            for downloadable in text_track['downloadables']:
-                rep = ET.SubElement(
-                    parent=subtiles_adaption_set,
-                    tag='Representation',
-                    nflxProfile=downloadable.get('contentProfile'))
-                base_url = self.__get_base_url(downloadable['urls'])
-                ET.SubElement(rep, 'BaseURL').text = base_url
-                filename_lang = str(text_track.get('bcp47'))
-                file.write(filename_lang)     #write subtitle language and url to file
-                file.write(': ' + base_url + '\r\n')   #write subtitle language and url to file
-                if (filename_lang == self.nx_common.get_setting('subtitle_language').lower()) or (self.nx_common.get_setting('subtitle_language') == ''):
-                    filename_title = xbmc.getInfoLabel('VideoPlayer.TVShowTitle')
-                    movie=False
-                    if filename_title=='':
-                        movie=True
-                        filename_title = xbmc.getInfoLabel('VideoPlayer.Title')
-                    filename_season = xbmc.getInfoLabel('VideoPlayer.Season')
-                    filename_episode = xbmc.getInfoLabel('VideoPlayer.Episode')
-                    if movie:
-                        filename_out = filename_title + '.' + filename_lang + '.vtt'
+                mimeType='text/vtt' if downloadable.get('contentProfile') == 'webvtt-lssdh-ios8' else 'application/ttml+xml')
+            role = ET.SubElement(
+                parent=subtiles_adaption_set,
+                tag = 'Role',
+                schemeIdUri = 'urn:mpeg:dash:role:2011',
+                value = 'forced' if text_track.get('isForced') == True else 'main')
+            rep = ET.SubElement(
+                parent=subtiles_adaption_set,
+                tag='Representation',
+                nflxProfile=downloadable.get('contentProfile'))
+            base_url = self.__get_base_url(downloadable['urls'])
+            ET.SubElement(rep, 'BaseURL').text = base_url
+            filename_lang = str(text_track.get('bcp47'))
+            file.write(filename_lang)     #write subtitle language and url to file
+            file.write(': ' + base_url + '\r\n')   #write subtitle language and url to file
+            if (filename_lang == self.nx_common.get_setting('subtitle_language').lower()) or (self.nx_common.get_setting('subtitle_language') == ''):
+                filename_title = xbmc.getInfoLabel('VideoPlayer.TVShowTitle')
+                movie=False
+                if filename_title=='':
+                    movie=True
+                    filename_title = xbmc.getInfoLabel('VideoPlayer.Title')
+                filename_season = xbmc.getInfoLabel('VideoPlayer.Season')
+                filename_episode = xbmc.getInfoLabel('VideoPlayer.Episode')
+                if movie:
+                    filename_out = filename_title + '.' + filename_lang + '.vtt'
+                else:
+                    filename_out = filename_title + '.S' + filename_season.zfill(2) + 'E' + filename_episode.zfill(2) + '.' + filename_lang + '.vtt' 
+                filename_out = unicode(filename_out, "utf-8").translate(dict((ord(char), None) for char in '\/*?:"<>|'))
+                if not os.path.isfile(os.path.join(subtitle_path, filename_out)): #if file doesnt exist already
+                    urllib.urlretrieve (base_url, os.path.join(subtitle_path, filename_out))    #download subtitle to a file
+                else: #if already exists
+                    urllib.urlretrieve (base_url, os.path.join(subtitle_path, 'temp'))    #download subtitle to a file
+                    if (os.path.getsize(os.path.join(subtitle_path, 'temp')) > os.path.getsize(os.path.join(subtitle_path, filename_out))): #if new one is bigger than the old one
+                        os.remove(os.path.join(subtitle_path, filename_out))
+                        os.rename(os.path.join(subtitle_path, 'temp'), os.path.join(subtitle_path, filename_out))
                     else:
-                        filename_out = filename_title + '.S' + filename_season.zfill(2) + 'E' + filename_episode.zfill(2) + '.' + filename_lang + '.vtt' 
-                    filename_out = unicode(filename_out, "utf-8").translate(dict((ord(char), None) for char in '\/*?:"<>|'))
-                    if not os.path.isfile(os.path.join(subtitle_path, filename_out)): #if file doesnt exist already
-                        urllib.urlretrieve (base_url, os.path.join(subtitle_path, filename_out))    #download subtitle to a file
-                    else: #if already exists
-                        urllib.urlretrieve (base_url, os.path.join(subtitle_path, 'temp'))    #download subtitle to a file
-                        if (os.path.getsize(os.path.join(subtitle_path, 'temp')) > os.path.getsize(os.path.join(subtitle_path, filename_out))): #if new one is bigger than the old one
-                            os.remove(os.path.join(subtitle_path, filename_out))
-                            os.rename(os.path.join(subtitle_path, 'temp'), os.path.join(subtitle_path, filename_out))
-                        else:
-                            os.remove(os.path.join(subtitle_path, 'temp'))
-                    if self.nx_common.get_setting('convert_to_srt') == 'true':
-                        self.__convert2SRT(filename_out)
+                        os.remove(os.path.join(subtitle_path, 'temp'))
+                if self.nx_common.get_setting('convert_to_srt') == 'true':
+                    self.__convert2SRT(filename_out)
 
         if self.nx_common.get_setting('delete_vtt') == 'true' and self.nx_common.get_setting('convert_to_srt') == 'true': #delete vtt files
             list_of_files = os.listdir(subtitle_path)
