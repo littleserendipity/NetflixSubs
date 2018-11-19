@@ -470,6 +470,8 @@ class MSL(object):
                 continue
             # Only one subtitle representation per adaptationset
             downloadable = text_track['downloadables'][0]
+            if text_track['isForced']: #skip forced subtitles
+                continue
             subtiles_adaption_set = ET.SubElement(
                 parent=period,
                 tag='AdaptationSet',
@@ -491,7 +493,7 @@ class MSL(object):
             filename_lang = str(text_track.get('bcp47'))
             file.write(filename_lang)     #write subtitle language and url to file
             file.write(': ' + base_url + '\r\n')   #write subtitle language and url to file
-            if (filename_lang == self.nx_common.get_setting('subtitle_language').lower()) or (self.nx_common.get_setting('subtitle_language') == ''):
+            if (filename_lang.startswith(self.nx_common.get_setting('subtitle_language').lower()) or (self.nx_common.get_setting('subtitle_language') == '')):
                 filename_title = xbmc.getInfoLabel('VideoPlayer.TVShowTitle')
                 movie=False
                 if filename_title=='':
@@ -504,15 +506,15 @@ class MSL(object):
                 else:
                     filename_out = filename_title + '.S' + filename_season.zfill(2) + 'E' + filename_episode.zfill(2) + '.' + filename_lang + '.vtt' 
                 filename_out = unicode(filename_out, "utf-8").translate(dict((ord(char), None) for char in '\/*?:"<>|'))
-                if not os.path.isfile(os.path.join(subtitle_path, filename_out)): #if file doesnt exist already
-                    urllib.urlretrieve (base_url, os.path.join(subtitle_path, filename_out))    #download subtitle to a file
-                else: #if already exists
-                    urllib.urlretrieve (base_url, os.path.join(subtitle_path, 'temp'))    #download subtitle to a file
-                    if (os.path.getsize(os.path.join(subtitle_path, 'temp')) > os.path.getsize(os.path.join(subtitle_path, filename_out))): #if new one is bigger than the old one
-                        os.remove(os.path.join(subtitle_path, filename_out))
-                        os.rename(os.path.join(subtitle_path, 'temp'), os.path.join(subtitle_path, filename_out))
-                    else:
-                        os.remove(os.path.join(subtitle_path, 'temp'))
+#                if not os.path.isfile(os.path.join(subtitle_path, filename_out)): #if file doesnt exist already
+                urllib.urlretrieve (base_url, os.path.join(subtitle_path, filename_out))    #download subtitle to a file
+#                else: #if already exists
+#                    urllib.urlretrieve (base_url, os.path.join(subtitle_path, 'temp'))    #download subtitle to a file
+#                    if (os.path.getsize(os.path.join(subtitle_path, 'temp')) > os.path.getsize(os.path.join(subtitle_path, filename_out))): #if new one is bigger than the old one
+#                        os.remove(os.path.join(subtitle_path, filename_out))
+#                        os.rename(os.path.join(subtitle_path, 'temp'), os.path.join(subtitle_path, filename_out))
+#                    else:
+#                        os.remove(os.path.join(subtitle_path, 'temp'))
                 if self.nx_common.get_setting('convert_to_srt') == 'true':
                     self.__convert2SRT(filename_out)
 
@@ -531,6 +533,7 @@ class MSL(object):
             content=xml)
 
         return xml
+
     def __convert2SRT(self, in_file):
         subtitle_path = unicode(self.nx_common.get_setting('subtitle_folder'), "utf-8")
         f = codecs.open(os.path.join(subtitle_path, in_file), 'r', encoding='utf-8')
