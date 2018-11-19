@@ -369,7 +369,7 @@ msgid "Subtitles Folder"
 msgstr ""
 
 msgctxt "#30122"
-msgid "Convert Subtitles to SRT"
+msgid "Convert Subtitles to SRT (strip formatting)"
 msgstr ""
 
 msgctxt "#30123"
