@@ -470,8 +470,6 @@ class MSL(object):
                 continue
             # Only one subtitle representation per adaptationset
             downloadable = text_track['downloadables'][0]
-            if text_track['isForced']: #skip forced subtitles
-                continue
             subtiles_adaption_set = ET.SubElement(
                 parent=period,
                 tag='AdaptationSet',
@@ -492,7 +490,16 @@ class MSL(object):
             ET.SubElement(rep, 'BaseURL').text = base_url
             filename_lang = str(text_track.get('bcp47'))
             file.write(filename_lang)     #write subtitle language and url to file
+            subs_type = ''
+            if text_track['isForced']:
+                subs_type = 'FORCED.'
+                file.write(' FORCED')
+            elif text_track['trackType'] == 'CLOSEDCAPTIONS':
+                subs_type = 'CC.'
+                file.write(' CAPTIONS')
             file.write(': ' + base_url + '\r\n')   #write subtitle language and url to file
+            if self.nx_common.get_setting('skip_forced') == 'true' and text_track['isForced']:
+                continue
             if (filename_lang.startswith(self.nx_common.get_setting('subtitle_language').lower()) or (self.nx_common.get_setting('subtitle_language') == '')):
                 filename_title = xbmc.getInfoLabel('VideoPlayer.TVShowTitle')
                 movie=False
@@ -502,9 +509,9 @@ class MSL(object):
                 filename_season = xbmc.getInfoLabel('VideoPlayer.Season')
                 filename_episode = xbmc.getInfoLabel('VideoPlayer.Episode')
                 if movie:
-                    filename_out = filename_title + '.' + filename_lang + '.vtt'
+                    filename_out = filename_title + '.' + subs_type + filename_lang + '.vtt'
                 else:
-                    filename_out = filename_title + '.S' + filename_season.zfill(2) + 'E' + filename_episode.zfill(2) + '.' + filename_lang + '.vtt' 
+                    filename_out = filename_title + '.S' + filename_season.zfill(2) + 'E' + filename_episode.zfill(2) + '.' + subs_type + filename_lang + '.vtt' 
                 filename_out = unicode(filename_out, "utf-8").translate(dict((ord(char), None) for char in '\/*?:"<>|'))
 #                if not os.path.isfile(os.path.join(subtitle_path, filename_out)): #if file doesnt exist already
                 urllib.urlretrieve (base_url, os.path.join(subtitle_path, filename_out))    #download subtitle to a file
