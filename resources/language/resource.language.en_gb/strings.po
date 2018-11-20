@@ -379,3 +379,7 @@ msgstr ""
 msgctxt "#30124"
 msgid "Only download subtitles with language code"
 msgstr ""
+
+msgctxt "#30125"
+msgid "Don't download forced subtitles"
+msgstr ""
