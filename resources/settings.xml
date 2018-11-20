@@ -60,8 +60,9 @@
   </category>
   <category label="30120">
     <setting label="30121" type="folder" id="subtitle_folder" source="files" option="writeable"/>
-	<setting id="convert_to_srt" type="bool" label="30122" default="true"/>
-	<setting id="delete_vtt" type="bool" label="30123" default="true"/>
-	<setting label="30124" type="text" id="subtitle_language" />
+    <setting id="convert_to_srt" type="bool" label="30122" default="true"/>
+    <setting id="delete_vtt" type="bool" label="30123" default="true"/>
+    <setting id="skip_forced" type="bool" label="30125" default="true"/>
+    <setting label="30124" type="text" id="subtitle_language" />
   </category>
 </settings>
