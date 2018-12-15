@@ -8,7 +8,6 @@
 import re
 import sys
 import zlib
-import gzip
 import json
 import time
 import base64
@@ -54,8 +53,7 @@ class MSL(object):
     base_url = 'https://www.netflix.com/nq/msl_v1/cadmium/'
     endpoints = {
         'manifest': base_url + 'pbo_manifests/%5E1.0.0/router',
-        #'license': base_url + 'pbo_licenses/%5E1.0.0/router'
-        'license': 'http://www.netflix.com/api/msl/NFCDCH-LX/cadmium/license'
+        'license': base_url + 'pbo_licenses/%5E1.0.0/router'
     }
 
     def __init__(self, nx_common):
@@ -86,14 +84,18 @@ class MSL(object):
         :param viewable_id: The id of of the viewable
         :return: MPD XML Manifest or False if no success
         """
+        ia_addon = None#xbmcaddon.Addon('inputstream.adaptive')
+        hdcp = ia_addon is not None and ia_addon.getSetting('HDCPOVERRIDE') == 'true'
+
         esn = self.nx_common.get_esn()
+        id = int(time.time() * 10000)
         manifest_request_data = {
             'version': 2,
             'url': '/manifest',
-            'id': 15423166626396,
+            'id': id,
             'esn': esn,
             'languages': self.locale_id,
-            'uiVersion': 'shakti-vb45817f4',
+            'uiVersion': 'shakti-v25d2fa21',
             'clientVersion': '6.0011.474.011',
             'params': {
                 'type': 'standard',
@@ -103,10 +105,10 @@ class MSL(object):
                 'drmVersion': 25,
                 'usePsshBox': True,
                 'isBranching': False,
-                'useHttpsStreams': True,
+                'useHttpsStreams': False,
                 'imageSubtitleHeight': 1080,
                 'uiVersion': 'shakti-vb45817f4',
-                'clientVersion': '6.0011.474.011',
+                'clientVersion': '6.0011.511.011',
                 'supportsPreReleasePin': True,
                 'supportsWatermark': True,
                 'showAllSubDubTracks': False,
@@ -115,7 +117,7 @@ class MSL(object):
                     'type': 'DigitalVideoOutputDescriptor',
                     'outputType': 'unknown',
                     'supportedHdcpVersions': [],
-                    'isHdcpEngaged': False
+                    'isHdcpEngaged': hdcp
                 }],
                 'preferAssistiveAudio': False,
                 'isNonMember': False
@@ -123,11 +125,11 @@ class MSL(object):
         }
         manifest_request_data['params']['titleSpecificData'][viewable_id] = { 'unletterboxed': False }
 
-        profiles = ['playready-h264mpl30-dash', 'playready-h264mpl31-dash', 'playready-h264hpl30-dash', 'playready-h264hpl31-dash', 'heaac-2-dash', 'BIF240', 'BIF320']
+        profiles = ['playready-h264mpl30-dash', 'playready-h264mpl31-dash', 'playready-h264mpl40-dash', 'playready-h264hpl30-dash', 'playready-h264hpl31-dash', 'playready-h264hpl40-dash', 'heaac-2-dash', 'BIF240', 'BIF320']
 
         # subtitles
         #addon = xbmcaddon.Addon('inputstream.adaptive')
-        #if addon and self.nx_common.compare_versions(map(int, addon.getAddonInfo('version').split('.')), [2, 3, 8]) >= 0:
+        #if ia_addon and self.nx_common.compare_versions(map(int, ia_addon.getAddonInfo('version').split('.')), [2, 3, 8]) >= 0:
         profiles.append('webvtt-lssdh-ios8')
         #else:
         #    profiles.append('simplesdh')
@@ -218,7 +220,7 @@ class MSL(object):
             profiles.append('ddplus-5.1-dash')
 
         manifest_request_data["params"]["profiles"] = profiles
-        print manifest_request_data
+        #print manifest_request_data
 
         request_data = self.__generate_msl_request_data(manifest_request_data)
 
@@ -258,7 +260,7 @@ class MSL(object):
         """
         esn = self.nx_common.get_esn()
         id = int(time.time() * 10000)
-        '''license_request_data = {
+        license_request_data = {
             'version': 2,
             'url': self.last_license_url,
             'id': id,
@@ -273,22 +275,6 @@ class MSL(object):
                 'xid': str(id + 1610)
             }],
             'echo': 'sessionId'
-        }'''
-
-        license_request_data = {
-            'method': 'license',
-            'licenseType': 'STANDARD',
-            'clientVersion': '4.0004.899.011',
-            'uiVersion': 'akira',
-            'languages': self.locale_id,
-            'playbackContextId': self.last_playback_context,
-            'drmContextIds': [self.last_drm_context],
-            'challenges': [{
-                'dataBase64': challenge,
-                'sessionId': sid
-            }],
-            'clientTime': int(id / 10000),
-            'xid': id + 1610
         }
 
         #print license_request_data
@@ -315,8 +301,8 @@ class MSL(object):
                 # json() failed so we have a chunked json response
                 resp = self.__parse_chunked_msl_response(resp.text)
                 data = self.__decrypt_payload_chunks(resp['payloads'])
-                if data['success'] is True:
-                    return data['result']['licenses'][0]['data']
+                if 'licenseResponseBase64' in data[0]:
+                    return data[0]['licenseResponseBase64']
                 else:
                     self.nx_common.log(
                         msg='Error getting license: ' + json.dumps(data))
@@ -345,7 +331,12 @@ class MSL(object):
                 data = base64.standard_b64decode(data)
             decrypted_payload += data
 
-        decrypted_payload = json.JSONDecoder().decode(decrypted_payload)[1]['payload']
+        decrypted_payload = json.JSONDecoder().decode(decrypted_payload)
+        
+        if 'result' in decrypted_payload:
+            return decrypted_payload['result']
+            
+        decrypted_payload = decrypted_payload[1]['payload']
         if 'json' in decrypted_payload:
             return decrypted_payload['json']['result']
         else:
@@ -360,7 +351,7 @@ class MSL(object):
             filename='manifest.json',
             content=json.dumps(manifest))
 
-        self.last_license_url = manifest['links']['ldl']['href']
+        self.last_license_url = manifest['links']['license']['href']
         self.last_playback_context = manifest['playbackContextId']
         self.last_drm_context = manifest['drmContextId']
 
@@ -624,21 +615,10 @@ class MSL(object):
             'mastertoken': self.mastertoken,
         }
 
-        # Serialize the given Data
-        raw_marshalled_data = json.dumps(data)
-        marshalled_data = raw_marshalled_data.replace('"', '\\"')
-        serialized_data = '[{},{"headers":{},"path":"/cbp/cadmium-13"'
-        serialized_data += ',"payload":{"data":"'
-        serialized_data += marshalled_data
-        serialized_data += '"},"query":""}]\n'
-
-        compressed_data = self.__compress_data(serialized_data)
-
         # Create FIRST Payload Chunks
         first_payload = {
             'messageid': self.current_message_id,
-            'data': compressed_data,
-            'compressionalgo': 'GZIP',
+            'data': base64.standard_b64encode(json.dumps(data)),
             'sequencenumber': 1,
             'endofmsg': True
         }
@@ -651,13 +631,6 @@ class MSL(object):
         }
         request_data = json.dumps(header) + json.dumps(first_payload_chunk)
         return request_data
-
-    def __compress_data(self, data):
-        # GZIP THE DATA
-        out = StringIO()
-        with gzip.GzipFile(fileobj=out, mode="w") as f:
-            f.write(data)
-        return base64.standard_b64encode(out.getvalue())
 
     def __generate_msl_header(
             self,
@@ -680,13 +653,13 @@ class MSL(object):
             'handshake': is_handshake,
             'nonreplayable': False,
             'capabilities': {
-                'languages': ['en-US'],
+                'languages': self.locale_id,
                 'compressionalgos': compression_algos
             },
             'recipient': 'Netflix',
             'renewable': True,
             'messageid': self.current_message_id,
-            'timestamp': 1467733923
+            'timestamp': time.time()
         }
 
         # If this is a keyrequest act diffrent then other requests
